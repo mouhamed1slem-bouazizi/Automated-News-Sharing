@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RSS to X Poster</title>
+  <link rel="stylesheet" href="css/popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>RSS to X Poster</h1>
+    
+    <div class="status-section">
+      <div class="status-indicator">
+        <span id="statusIcon" class="status-icon"></span>
+        <span id="statusText">Checking status...</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="autoPostingToggle">
+        <span class="slider round"></span>
+      </label>
+    </div>
+    
+    <div class="pending-posts-section">
+      <h2>Pending Posts <span id="pendingCount" class="count-badge">0</span></h2>
+      <div id="pendingPostsList" class="posts-list">
+        <!-- Pending posts will be inserted here -->
+      </div>
+    </div>
+    
+    <div class="recent-posts-section">
+      <h2>Recent Posts <span id="recentCount" class="count-badge">0</span></h2>
+      <div id="recentPostsList" class="posts-list">
+        <!-- Recent posts will be inserted here -->
+      </div>
+    </div>
+    
+    <div class="button-row">
+      <button id="addFeedBtn" class="btn primary">Add Feed</button>
+      <button id="settingsBtn" class="btn">Settings</button>
+    </div>
+  </div>
+  
+  <script src="js/storage-service.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
