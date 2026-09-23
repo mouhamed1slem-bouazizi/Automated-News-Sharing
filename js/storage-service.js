@@ -8,12 +8,10 @@ const StorageService = {
     if (!settings || Object.keys(settings).length === 0) {
       await chrome.storage.sync.set({
         settings: {
-          autoPostingEnabled: false,
-          previewBeforePosting: true,
-          summaryLength: 'medium', // short, medium, long
-          postingInterval: 60, // minutes
-          includeHashtags: true,
-          hashtags: 'news,update'
+          monitoringEnabled: false,
+          demoMode: true,
+          openaiModel: 'gpt-5-mini',
+          maxPostLength: 280
         }
       });
     }
@@ -50,13 +48,13 @@ const StorageService = {
   
   // Get API keys
   async getAPIKeys() {
-    const data = await chrome.storage.sync.get('apiKeys');
+    const data = await chrome.storage.local.get('apiKeys');
     return data.apiKeys || { openai: '', twitter: '' };
   },
   
   // Save API keys
   async saveAPIKeys(apiKeys) {
-    await chrome.storage.sync.set({ apiKeys });
+    await chrome.storage.local.set({ apiKeys });
   },
   
   // Get RSS feeds
@@ -127,5 +125,14 @@ const StorageService = {
   // Set last post time
   async setLastPostTime(timestamp) {
     await chrome.storage.local.set({ lastPostTime: timestamp });
+  },
+
+  async getLastRun() {
+    const data = await chrome.storage.local.get('lastRun');
+    return data.lastRun || null;
+  },
+
+  async setLastRun(report) {
+    await chrome.storage.local.set({ lastRun: { ...report, completedAt: new Date().toISOString() } });
   }
 };

@@ -1,12 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "RSS to X Poster",
-  "version": "1.0",
-  "description": "Automatically summarize RSS articles and post to X (Twitter)",
+  "name": "RSS-to-LLM Publishing Pipeline",
+  "version": "2.0.0",
+  "description": "Process RSS articles into structured summaries and approval-ready social content",
   "permissions": [
     "storage",
-    "alarms",
-    "activeTab"
+    "alarms"
   ],
   "host_permissions": [
     "<all_urls>"

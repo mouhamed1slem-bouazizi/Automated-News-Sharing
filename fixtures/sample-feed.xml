@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>City Technology News</title>
+    <link>https://example.com/news</link>
+    <description>Sanitized portfolio fixture</description>
+    <item>
+      <guid>city-tech-2026-042</guid>
+      <title>City launches electric bus network</title>
+      <link>https://example.com/news/electric-buses?utm_source=rss</link>
+      <pubDate>Wed, 23 Sep 2026 08:00:00 GMT</pubDate>
+      <description><![CDATA[The city launched 40 electric buses today. Officials expect the fleet to reduce transport emissions and operating costs.]]></description>
+    </item>
+  </channel>
+</rss>

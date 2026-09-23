@@ -1,45 +1,27 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>RSS to X Poster</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NewsFlow Pipeline</title>
   <link rel="stylesheet" href="css/popup.css">
 </head>
 <body>
-  <div class="container">
-    <h1>RSS to X Poster</h1>
-    
-    <div class="status-section">
-      <div class="status-indicator">
-        <span id="statusIcon" class="status-icon"></span>
-        <span id="statusText">Checking status...</span>
-      </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="autoPostingToggle">
-        <span class="slider round"></span>
-      </label>
-    </div>
-    
-    <div class="pending-posts-section">
-      <h2>Pending Posts <span id="pendingCount" class="count-badge">0</span></h2>
-      <div id="pendingPostsList" class="posts-list">
-        <!-- Pending posts will be inserted here -->
-      </div>
-    </div>
-    
-    <div class="recent-posts-section">
-      <h2>Recent Posts <span id="recentCount" class="count-badge">0</span></h2>
-      <div id="recentPostsList" class="posts-list">
-        <!-- Recent posts will be inserted here -->
-      </div>
-    </div>
-    
-    <div class="button-row">
-      <button id="addFeedBtn" class="btn primary">Add Feed</button>
-      <button id="settingsBtn" class="btn">Settings</button>
-    </div>
-  </div>
-  
+  <main class="shell">
+    <header><div><div class="brand">NEWSFLOW</div><h1>Content pipeline</h1></div><span class="safe">Approval gated</span></header>
+    <section class="pipeline" aria-label="Pipeline stages">
+      <div><b>1</b><span>RSS ingest</span></div><i>→</i><div><b>2</b><span>AI structure</span></div><i>→</i><div><b>3</b><span>Human review</span></div>
+    </section>
+    <section class="status-card">
+      <div><span class="dot"></span><strong id="statusText">Monitoring paused</strong><p>External publishing is never automatic.</p></div>
+      <label class="switch" aria-label="Toggle feed monitoring"><input id="monitoringToggle" type="checkbox"><span></span></label>
+    </section>
+    <section class="queue-heading"><div><span class="label">REVIEW QUEUE</span><h2><span id="pendingCount">0</span> items awaiting approval</h2></div><button id="runBtn">Run pipeline</button></section>
+    <div id="pendingPostsList" class="queue"><div class="empty">No pending items. Add a feed in Settings, then run the pipeline.</div></div>
+    <footer><button id="settingsBtn" class="text-button">Pipeline settings</button><span id="runStatus">Demo mode available</span></footer>
+  </main>
   <script src="js/storage-service.js"></script>
+  <script src="js/publishing-service.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

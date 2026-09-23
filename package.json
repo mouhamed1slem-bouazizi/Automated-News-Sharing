@@ -1,0 +1,14 @@
+{
+  "name": "rss-llm-publishing-pipeline",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Auditable RSS-to-LLM content processing and approval-aware publishing pipeline",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "demo": "node scripts/run-demo.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

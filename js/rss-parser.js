@@ -1,83 +1,70 @@
-// RSS Parser service
-
-const RSSParser = {
-  // Fetch and parse RSS feed
-  async fetchFeed(feedUrl) {
-    try {
-      const response = await fetch(feedUrl);
-      const text = await response.text();
-      
-      // Parse XML
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(text, 'text/xml');
-      
-      // Check if it's RSS or Atom
-      const isRSS = xmlDoc.querySelector('rss, channel');
-      const isAtom = xmlDoc.querySelector('feed');
-      
-      if (isRSS) {
-        return this.parseRSS(xmlDoc);
-      } else if (isAtom) {
-        return this.parseAtom(xmlDoc);
-      } else {
-        throw new Error('Unsupported feed format');
-      }
-    } catch (error) {
-      console.error('Error fetching RSS feed:', error);
-      return [];
+/* RSS/Atom parsing with explicit malformed-feed errors. */
+(function attachRSSParser(root, factory) {
+  const api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  root.RSSParser = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function buildRSSParser() {
+  class FeedParseError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = 'FeedParseError';
     }
-  },
-  
-  // Parse RSS format
-  parseRSS(xmlDoc) {
-    const items = xmlDoc.querySelectorAll('item');
-    const articles = [];
-    
-    items.forEach(item => {
-      const title = item.querySelector('title')?.textContent || '';
-      const link = item.querySelector('link')?.textContent || '';
-      const description = item.querySelector('description')?.textContent || '';
-      const content = item.querySelector('content\\:encoded, content')?.textContent || description;
-      const pubDate = item.querySelector('pubDate')?.textContent || '';
-      const guid = item.querySelector('guid')?.textContent || link;
-      
-      articles.push({
-        title,
-        link,
-        content,
-        pubDate: new Date(pubDate),
-        guid
-      });
-    });
-    
-    // Sort by publication date (newest first)
-    return articles.sort((a, b) => b.pubDate - a.pubDate);
-  },
-  
-  // Parse Atom format
-  parseAtom(xmlDoc) {
-    const entries = xmlDoc.querySelectorAll('entry');
-    const articles = [];
-    
-    entries.forEach(entry => {
-      const title = entry.querySelector('title')?.textContent || '';
-      const link = entry.querySelector('link[rel="alternate"]')?.getAttribute('href') || 
-                  entry.querySelector('link')?.getAttribute('href') || '';
-      const content = entry.querySelector('content')?.textContent || 
-                     entry.querySelector('summary')?.textContent || '';
-      const pubDate = entry.querySelector('published, updated')?.textContent || '';
-      const guid = entry.querySelector('id')?.textContent || link;
-      
-      articles.push({
-        title,
-        link,
-        content,
-        pubDate: new Date(pubDate),
-        guid
-      });
-    });
-    
-    // Sort by publication date (newest first)
-    return articles.sort((a, b) => b.pubDate - a.pubDate);
   }
-};
+
+  function validateFeedText(text) {
+    const value = String(text || '').trim();
+    if (!value) throw new FeedParseError('Feed response was empty');
+    if (!/^<\?xml\b|^<(rss|feed)\b/i.test(value)) {
+      throw new FeedParseError('Response is not an RSS or Atom XML document');
+    }
+    const isRSS = /<rss\b/i.test(value) && /<channel\b/i.test(value);
+    const isAtom = /<feed\b/i.test(value);
+    if (!isRSS && !isAtom) throw new FeedParseError('Unsupported feed format');
+    if (isRSS && (!/<\/channel>/i.test(value) || !/<\/rss>/i.test(value))) {
+      throw new FeedParseError('Malformed RSS feed: missing closing element');
+    }
+    if (isAtom && !/<\/feed>/i.test(value)) {
+      throw new FeedParseError('Malformed Atom feed: missing closing element');
+    }
+    return isRSS ? 'rss' : 'atom';
+  }
+
+  function parseDocument(text, DOMParserClass = globalThis.DOMParser) {
+    const format = validateFeedText(text);
+    if (!DOMParserClass) throw new FeedParseError('DOMParser is unavailable in this runtime');
+    const document = new DOMParserClass().parseFromString(text, 'application/xml');
+    const parserError = document.querySelector('parsererror');
+    if (parserError) throw new FeedParseError(`Malformed XML: ${parserError.textContent.trim()}`);
+    return { document, format };
+  }
+
+  function safeDate(value) {
+    const date = new Date(value || 0);
+    return Number.isNaN(date.getTime()) ? new Date(0) : date;
+  }
+
+  function parseFeed(text, DOMParserClass) {
+    const { document, format } = parseDocument(text, DOMParserClass);
+    const nodes = document.querySelectorAll(format === 'rss' ? 'item' : 'entry');
+    const articles = [...nodes].map((node) => {
+      const title = node.querySelector('title')?.textContent?.trim() || '';
+      const link = format === 'rss'
+        ? node.querySelector('link')?.textContent?.trim() || ''
+        : node.querySelector('link[rel="alternate"]')?.getAttribute('href') || node.querySelector('link')?.getAttribute('href') || '';
+      const description = node.querySelector('description, summary')?.textContent?.trim() || '';
+      const content = node.querySelector('content\\:encoded, content')?.textContent?.trim() || description;
+      const pubDate = node.querySelector('pubDate, published, updated')?.textContent?.trim() || '';
+      const guid = node.querySelector('guid, id')?.textContent?.trim() || link;
+      return { title, link, description, content, pubDate, guid };
+    });
+    return articles.sort((a, b) => safeDate(b.pubDate) - safeDate(a.pubDate));
+  }
+
+  async function fetchFeed(feedUrl, fetchImpl = fetch) {
+    const response = await fetchImpl(feedUrl, { headers: { Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml' } });
+    if (!response.ok) throw new FeedParseError(`Feed request failed with HTTP ${response.status}`);
+    return parseFeed(await response.text());
+  }
+
+  return { FeedParseError, validateFeedText, parseFeed, fetchFeed };
+});
